@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Live Stock Rates</title>
     <!-- Add Socket.IO client library -->
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
@@ -13,34 +13,36 @@
             padding: 0;
             background-color: #1c1c1e; /* Dark background */
             color: #ffffff; /* White text */
-            padding-top: 20px; /* Adjusted space from top */
+            padding-top: 10px; /* Adjusted space from top */
+            -webkit-text-size-adjust: 100%;
+            -webkit-tap-highlight-color: transparent;
         }
         .container {
             width: 100%;
-            max-width: 600px; /* Similar width to phone screen */
+            max-width: 100%; /* Similar width to phone screen */
             margin: 0 auto;
-            padding: 0 15px; /* Horizontal padding */
+            padding: 0 15px;
+            box-sizing: border-box;
         }
         h1 {
             color: #ffffff;
             text-align: left;
-            margin-bottom: 0px; /* Reduced space below h1 */
-            font-size: 2rem;
-            padding: 0px;
+            margin: 0;
+            font-size: 1.5rem;
+            padding: 0;
         }
         #currentDate {
             color: #a9a9a9;
-            font-size: 1.1rem;
-            margin-top: 0px; /* Reduced space above date */
-            margin-bottom: 15px; /* Space below date */
-            padding: 0px;
+            font-size: 0.9rem;
+            margin: 5px 0 10px 0;
+            padding: 0;
         }
         .status {
             text-align: center;
             margin-bottom: 10px; /* Reduced space below status */
-            padding: 8px;
+            padding: 6px;
             border-radius: 5px;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             color: #ffffff;
         }
         .connected {
@@ -69,17 +71,24 @@
 
         .stock-info {
             flex-grow: 1;
+            min-width: 0; /* Prevent flex item from overflowing */
         }
 
         .stock-symbol {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
             margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .stock-name {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             color: #a9a9a9; /* Grey text for name */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .stock-graph {
@@ -96,19 +105,21 @@
 
         .stock-price-change {
             text-align: right;
+            margin-left: 10px;
+            min-width: 100px; /* Ensure price section has minimum width */
         }
 
         .stock-price {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
             margin-bottom: 2px;
         }
 
         .stock-change {
             display: inline-block;
-            padding: 4px 6px;
+            padding: 3px 5px;
             border-radius: 4px;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: 600;
         }
 
@@ -145,23 +156,22 @@
 
         /* Search/Filter Styling */
         .search-container {
-            padding: 10px 0 15px 0; /* Adjusted padding */
-            margin-bottom: 0px;
+            padding: 8px 0 12px 0;
+            margin-bottom: 0;
             display: flex;
             justify-content: center;
             width: 100%;
         }
 
         #stockSearch {
-            width: 90%;
-            max-width: 500px;
-            padding: 10px;
+            width: 100%;
+            padding: 8px 12px;
             border: none;
             border-radius: 8px;
             background-color: #303030; /* Dark input background */
             color: #ffffff; /* White input text */
-            font-size: 1rem;
-            margin: 0 auto;
+            font-size: 0.9rem;
+            box-sizing: border-box;
         }
 
         #stockSearch::placeholder {
@@ -171,8 +181,9 @@
         /* Loading/No Data Styling */
         .info-message {
             text-align: center;
-            padding: 20px;
+            padding: 15px;
             color: #a9a9a9;
+            font-size: 0.9rem;
         }
 
          /* Hide original table display */
@@ -195,23 +206,23 @@
         .modal-content {
             position: relative;
             background-color: #1c1c1e;
-            margin: 10% auto;
-            padding: 20px;
+            margin: 5% auto;
+            padding: 15px;
             width: 90%;
-            max-width: 500px;
+            max-width: 400px;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
         }
 
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .modal-title {
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             color: #ffffff;
             margin: 0;
         }
@@ -226,36 +237,38 @@
         }
 
         .stock-selection {
-            max-height: 400px;
+            max-height: 60vh;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .stock-checkbox {
             display: flex;
             align-items: center;
-            padding: 10px;
+            padding: 8px;
             border-bottom: 1px solid #303030;
         }
 
         .stock-checkbox label {
-            margin-left: 10px;
+            margin-left: 8px;
             color: #ffffff;
             cursor: pointer;
+            font-size: 0.9rem;
         }
 
         .modal-actions {
             display: flex;
             justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
+            gap: 8px;
+            margin-top: 15px;
         }
 
         .modal-button {
-            padding: 8px 16px;
+            padding: 6px 12px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: 500;
         }
 
@@ -275,12 +288,12 @@
             color: #ffffff;
             border: none;
             border-radius: 6px;
-            padding: 4px 10px;
+            padding: 4px 8px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
         }
 
         .edit-button:hover {
@@ -292,7 +305,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0px;
+            margin-bottom: 5px;
             padding: 0; /* Removed horizontal padding */
         }
 
@@ -302,8 +315,8 @@
 
         /* Checkbox Styles */
         input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             cursor: pointer;
             accent-color: #34c759;
         }
