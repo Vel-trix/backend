@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Stock Rates</title>
+    <!-- Add Socket.IO client library -->
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            margin: 0;
+            padding: 0;
+            background-color: #1c1c1e; /* Dark background */
+            color: #ffffff; /* White text */
+            padding-top: 20px; /* Adjusted space from top */
+        }
+        .container {
+            width: 100%;
+            max-width: 600px; /* Similar width to phone screen */
+            margin: 0 auto;
+            padding: 0 15px; /* Horizontal padding */
+        }
+        h1 {
+            color: #ffffff;
+            text-align: left;
+            margin-bottom: 0px; /* Reduced space below h1 */
+            font-size: 2rem;
+            padding: 0px;
+        }
+        #currentDate {
+            color: #a9a9a9;
+            font-size: 1.1rem;
+            margin-top: 0px; /* Reduced space above date */
+            margin-bottom: 15px; /* Space below date */
+            padding: 0px;
+        }
+        .status {
+            text-align: center;
+            margin-bottom: 10px; /* Reduced space below status */
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            color: #ffffff;
+        }
+        .connected {
+            background-color: #303030; /* Darker background for status */
+            color: #34c759; /* Green for connected */
+        }
+        .disconnected {
+            background-color: #303030; /* Darker background for status */
+            color: #ff3b30; /* Red for disconnected */
+        }
+
+        /* Stock List and Item Styling */
+        .stock-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .stock-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0; /* Reduced vertical padding */
+            border-bottom: 1px solid #303030; /* Darker separator */
+        }
+
+        .stock-info {
+            flex-grow: 1;
+        }
+
+        .stock-symbol {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .stock-name {
+            font-size: 0.9rem;
+            color: #a9a9a9; /* Grey text for name */
+        }
+
+        .stock-graph {
+            width: 80px; /* Placeholder width for graph */
+            height: 40px;
+            background-color: #303030; /* Placeholder background */
+            margin: 0 15px; /* Spacing around graph */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #a9a9a9;
+        }
+
+        .stock-price-change {
+            text-align: right;
+        }
+
+        .stock-price {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .stock-change {
+            display: inline-block;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .change-positive {
+            background-color: #34c759; /* Green background */
+            color: #1c1c1e; /* Dark text for contrast */
+        }
+
+        .change-negative {
+            background-color: #ff3b30; /* Red background */
+            color: #1c1c1e; /* Dark text for contrast */
+        }
+
+        /* Animation for price change */
+        @keyframes price-flash-positive {
+            0% { background-color: transparent; color: #34c759; }
+            50% { background-color: #34c759; color: #1c1c1e; }
+            100% { background-color: transparent; color: #34c759; }
+        }
+
+        @keyframes price-flash-negative {
+            0% { background-color: transparent; color: #ff3b30; }
+            50% { background-color: #ff3b30; color: #1c1c1e; }
+            100% { background-color: transparent; color: #ff3b30; }
+        }
+
+        .flash-positive .stock-price {
+             animation: price-flash-positive 1s ease-out;
+        }
+
+         .flash-negative .stock-price {
+             animation: price-flash-negative 1s ease-out;
+        }
+
+        /* Search/Filter Styling */
+        .search-container {
+            padding: 10px 0 15px 0; /* Adjusted padding */
+            margin-bottom: 0px;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        #stockSearch {
+            width: 90%;
+            max-width: 500px;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background-color: #303030; /* Dark input background */
+            color: #ffffff; /* White input text */
+            font-size: 1rem;
+            margin: 0 auto;
+        }
+
+        #stockSearch::placeholder {
+            color: #a9a9a9; /* Grey placeholder text */
+        }
+
+        /* Loading/No Data Styling */
+        .info-message {
+            text-align: center;
+            padding: 20px;
+            color: #a9a9a9;
+        }
+
+         /* Hide original table display */
+        #stockTable {
+            display: none;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: #1c1c1e;
+            margin: 10% auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: #ffffff;
+            margin: 0;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .stock-selection {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .stock-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #303030;
+        }
+
+        .stock-checkbox label {
+            margin-left: 10px;
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .select-all {
+            background-color: #303030;
+            color: #ffffff;
+        }
+
+        .apply-changes {
+            background-color: #34c759;
+            color: #1c1c1e;
+        }
+
+        /* Edit Button Styles */
+        .edit-button {
+            background-color: #303030;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            padding: 4px 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .edit-button:hover {
+            background-color: #404040;
+        }
+
+        /* Header Container for Stocks title and Edit button */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0px;
+            padding: 0; /* Removed horizontal padding */
+        }
+
+        .header-container h1 {
+            margin: 0;
+        }
+
+        /* Checkbox Styles */
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #34c759;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-container">
+            <h1>Stocks</h1>
+            <button class="edit-button" onclick="openModal()">
+                <span>EDIT</span>
+            </button>
+        </div>
+        <p id="currentDate"></p>
+        
+        <div class="search-container">
+            <input type="text" id="stockSearch" placeholder="Search">
+        </div>
+        <div id="status" class="status">Connecting...</div>
+        
+        <ul class="stock-list" id="stockList">
+            <li class="info-message">Loading data...</li>
+        </ul>
+    </div>
+
+    <!-- Stock Selection Modal -->
+    <div id="stockModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Select Stocks</h2>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-button select-all" onclick="toggleSelectAll()">Select All</button>
+            </div>
+            <div class="stock-selection" id="stockSelection">
+                <!-- Stock checkboxes will be added here dynamically -->
+            </div>
+            <div class="modal-actions">
+                <button class="modal-button apply-changes" onclick="applyStockSelection()">Apply Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const statusDiv = document.getElementById('status');
+        const stockListUl = document.getElementById('stockList');
+        const stockSearchInput = document.getElementById('stockSearch');
+        let socket = null;
+        let currentStockData = []; // Store the current full data
+        let previousPrices = new Map(); // Store previous prices for animation
+        let selectedStocks = new Set(); // Store selected stock symbols
+        let allStocks = []; // Store all available stocks
+
+        function connectSocket() {
+            // Close existing connection if any
+            if (socket) {
+                socket.disconnect();
+            }
+            
+            // Initialize Socket.IO connection
+            socket = io('https://backend-nl8q.onrender.com/', {
+                transports: ['websocket', 'polling'],
+                reconnection: true,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000,
+                timeout: 20000
+            });
+
+            socket.on('connect', () => {
+                statusDiv.textContent = 'Connected to live updates';
+                statusDiv.className = 'status connected';
+            });
+
+            socket.on('disconnect', () => {
+                statusDiv.textContent = 'Disconnected from live updates';
+                statusDiv.className = 'status disconnected';
+                
+                // Attempt to reconnect after 5 seconds
+                setTimeout(connectSocket, 5000);
+            });
+
+            socket.on('connect_error', (error) => {
+                console.error('Socket.IO Error:', error);
+                statusDiv.textContent = 'Connection error';
+                statusDiv.className = 'status disconnected';
+            });
+
+            socket.on('stockData', (data) => {
+                currentStockData = data.data;
+                allStocks = data.data; // Store all available stocks
+                displayStocks(currentStockData);
+            });
+        }
+
+        // Initial data fetch
+        fetch('https://backend-nl8q.onrender.com/data')
+            .then(response => response.json())
+            .then(response => {
+                 currentStockData = response.data; // Store initial data
+                 allStocks = response.data; // Store all available stocks
+                 // Store initial prices for comparison
+                 currentStockData.forEach(stock => {
+                     previousPrices.set(stock.Symbol, parseFloat(stock['Last Traded Price']));
+                 });
+
+                 // Load selected stocks from local storage
+                 const savedStocks = localStorage.getItem('selectedStocks');
+                 if (savedStocks) {
+                     try {
+                         const parsedStocks = JSON.parse(savedStocks);
+                         if (Array.isArray(parsedStocks)) {
+                             selectedStocks = new Set(parsedStocks);
+                         } else {
+                             console.error('Local storage data is not an array:', parsedStocks);
+                         }
+                     } catch (e) {
+                         console.error('Error parsing local storage data:', e);
+                     }
+                 }
+
+                 displayStocks(currentStockData); // Display data (filtered by selection if loaded)
+            })
+            .catch(error => {
+                console.error('Error fetching initial data:', error);
+                 stockListUl.innerHTML = '<li class="info-message">Error loading data. Please refresh the page.</li>';
+                 statusDiv.textContent = 'Failed to connect';
+                 statusDiv.className = 'status disconnected';
+            });
+
+        // Connect to WebSocket
+        connectSocket();
+
+        // Function to display stocks based on current data and filter
+        function displayStocks(data) {
+            const filterText = stockSearchInput.value.toLowerCase();
+            let filteredData = data.filter(stock => 
+                stock.Symbol.toLowerCase().includes(filterText)
+            );
+
+            // Apply stock selection filter if any stocks are selected
+            if (selectedStocks.size > 0) {
+                filteredData = filteredData.filter(stock => 
+                    selectedStocks.has(stock.Symbol)
+                );
+            }
+
+            if (!filteredData || filteredData.length === 0) {
+                stockListUl.innerHTML = '<li class="info-message">No matching stocks found.</li>';
+                return;
+            }
+
+            let listHTML = '';
+            filteredData.forEach(stock => {
+                const currentPrice = parseFloat(stock['Last Traded Price']);
+                const netChange = parseFloat(stock['Net Change In Rs']);
+                const percentageChange = parseFloat(stock['% Net Change In Rs']);
+                const previousPrice = previousPrices.get(stock.Symbol);
+
+                let flashClass = '';
+                if (previousPrice !== undefined && currentPrice !== previousPrice) {
+                    flashClass = netChange >= 0 ? 'flash-positive' : 'flash-negative';
+                }
+
+                const changeClass = netChange >= 0 ? 'change-positive' : 'change-negative';
+                const changeSign = netChange >= 0 ? '+' : '';
+
+                // Update previous price for the next update
+                previousPrices.set(stock.Symbol, currentPrice);
+
+                listHTML += `
+                    <li class="stock-item ${flashClass}">
+                        <div class="stock-info">
+                            <div class="stock-symbol">${stock.Symbol}</div>
+                            <div class="stock-name">${stock.Symbol}</div>
+                        </div>
+                        
+                        <div class="stock-price-change">
+                            <div class="stock-price">${currentPrice.toFixed(2)}</div>
+                            <div class="stock-change ${changeClass}">${changeSign}${netChange.toFixed(2)} (${changeSign}${percentageChange.toFixed(2)}%)</div>
+                        </div>
+                    </li>
+                `;
+            });
+            stockListUl.innerHTML = listHTML;
+        }
+
+        // Add event listener for search input
+        stockSearchInput.addEventListener('input', () => {
+            displayStocks(currentStockData); // Filter based on the currently held data
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (socket) {
+                socket.disconnect();
+            }
+        });
+
+        // Display current date
+        const dateElement = document.getElementById('currentDate');
+        const now = new Date();
+        const options = { month: 'long', day: 'numeric' };
+        dateElement.textContent = now.toLocaleDateString(undefined, options);
+
+        function openModal() {
+            document.getElementById('stockModal').style.display = 'block';
+            populateStockSelection();
+        }
+
+        function closeModal() {
+            document.getElementById('stockModal').style.display = 'none';
+        }
+
+        function populateStockSelection() {
+            const stockSelection = document.getElementById('stockSelection');
+            stockSelection.innerHTML = '';
+
+            allStocks.forEach(stock => {
+                const div = document.createElement('div');
+                div.className = 'stock-checkbox';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `stock-${stock.Symbol}`;
+                checkbox.checked = selectedStocks.has(stock.Symbol);
+                checkbox.onchange = () => toggleStock(stock.Symbol);
+
+                const label = document.createElement('label');
+                label.htmlFor = `stock-${stock.Symbol}`;
+                label.textContent = `${stock.Symbol}`;
+
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                stockSelection.appendChild(div);
+            });
+        }
+
+        function toggleStock(symbol) {
+            if (selectedStocks.has(symbol)) {
+                selectedStocks.delete(symbol);
+            } else {
+                selectedStocks.add(symbol);
+            }
+        }
+
+        function toggleSelectAll() {
+            const checkboxes = document.querySelectorAll('.stock-checkbox input[type="checkbox"]');
+            const allSelected = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = !allSelected;
+                const symbol = checkbox.id.replace('stock-', '');
+                if (!allSelected) {
+                    selectedStocks.add(symbol);
+                } else {
+                    selectedStocks.delete(symbol);
+                }
+            });
+        }
+
+        function applyStockSelection() {
+            // Save selected stocks to local storage
+            localStorage.setItem('selectedStocks', JSON.stringify(Array.from(selectedStocks)));
+            displayStocks(currentStockData);
+            closeModal();
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('stockModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+    </script>
+</body>
+</html> 

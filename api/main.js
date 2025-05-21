@@ -32,7 +32,12 @@ app.use(cors({
 app.use(express.json());
 
 // Serve static files from 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '../public')));
+
+// Serve index.html at root route
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+});
 
 // Initialize routes
 app.use(stock);
@@ -68,11 +73,12 @@ process.on('SIGINT', shutdown);
 
 // Start server
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-    console.log('WebSocket server enabled');
-    console.log('Frontend: http://localhost:' + PORT + '/');
-    console.log('MCX data endpoint: http://localhost:' + PORT + '/data');
-    console.log('MP3 download endpoint: http://localhost:' + PORT + '/mp3/{videoId}');
-    console.log('MP3 download endpoint: http://localhost:' + PORT + '/video/{videoId}');
-    console.log('Channel videos endpoint: http://localhost:' + PORT + '/c/{channelId}');
+    console.log('\n🚀 Server started successfully!');
+    console.log('\n📍 Access points:');
+    console.log(`📺 Movie App: http://localhost:${PORT}`);
+    console.log(`📊 MCX data endpoint: http://localhost:${PORT}/data`);
+    console.log(`🎵 MP3 download: http://localhost:${PORT}/mp3/{videoId}`);
+    console.log(`🎥 Video download: http://localhost:${PORT}/video/{videoId}`);
+    console.log(`📺 Channel videos: http://localhost:${PORT}/c/{channelId}`);
+    console.log('\n🔌 WebSocket server enabled');
 });
