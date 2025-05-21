@@ -1,5 +1,5 @@
-import express from 'express';
-import axios from 'axios';
+const express = require('express');
+const axios = require('axios');
 
 const app = express();
 
@@ -42,6 +42,21 @@ async function fetchStockData() {
     }
 }
 
+// Internal ping function to keep Render backend alive
+async function pingRenderBackend() {
+    try {
+        const response = await axios.get('https://backend-nl8q.onrender.com/', {
+            timeout: 5000,
+            validateStatus: (status) => status === 200
+        });
+        console.log('Render backend ping successful:', new Date().toISOString());
+        return true;
+    } catch (error) {
+        console.error('Render backend ping error:', error.message);
+        return false;
+    }
+}
+
 // SSE endpoint for real-time updates
 app.get('/stream', async (req, res) => {
     res.writeHead(200, {
@@ -69,7 +84,12 @@ app.get('/stream', async (req, res) => {
 // Function to broadcast data to all connected clients
 function broadcast(data) {
     clients.forEach(client => {
-        client.write(`data: ${JSON.stringify(data)}\n\n`);
+        try {
+            client.write(`data: ${JSON.stringify(data)}\n\n`);
+        } catch (error) {
+            console.error('Broadcast error:', error.message);
+            clients.delete(client);
+        }
     });
 }
 
@@ -90,8 +110,12 @@ app.get('/data', async (req, res) => {
     }
 });
 
-// Start polling if not on Vercel
+// Start backend processes if not on Vercel
 if (!process.env.VERCEL) {
+    // Keep Render backend alive with 30-second ping
+    setInterval(pingRenderBackend, 30000);
+
+    // Poll for data updates
     setInterval(async () => {
         const data = await fetchStockData();
         if (data && clients.size > 0) {
@@ -100,4 +124,4 @@ if (!process.env.VERCEL) {
     }, 1000);
 }
 
-export default app;
+module.exports = app;
