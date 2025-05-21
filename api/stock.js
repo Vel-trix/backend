@@ -1,18 +1,9 @@
 import express from 'express';
 import axios from 'axios';
+import { Server } from 'socket.io';
 
 const app = express();
-
-// Configure CORS for SSE
-app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    next();
-});
-
-// Store connected SSE clients
-const clients = new Set();
+let io;
 
 // Function to fetch data from the source
 async function fetchStockData() {
@@ -57,40 +48,73 @@ async function pingRenderBackend() {
     }
 }
 
-// SSE endpoint for real-time updates
-app.get('/stream', async (req, res) => {
-    res.writeHead(200, {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive'
+// Initialize Socket.IO
+export function initializeSocket(server) {
+    io = new Server(server, {
+        cors: {
+            origin: "*",
+            methods: ["GET", "POST", "OPTIONS"],
+            credentials: true,
+            allowedHeaders: ["Content-Type"]
+        },
+        transports: ['websocket', 'polling'],
+        pingTimeout: 60000,
+        pingInterval: 25000
     });
 
-    // Send initial data
-    const data = await fetchStockData();
-    if (data) {
-        res.write(`data: ${JSON.stringify(data)}\n\n`);
+    io.on('connection', (socket) => {
+        console.log('Client connected:', socket.id);
+        
+        // Send initial data
+        fetchStockData().then(data => {
+            if (data) {
+                socket.emit('stockData', data);
+            }
+        }).catch(error => {
+            console.error('Error fetching initial data:', error);
+            socket.emit('error', { message: 'Failed to fetch initial data' });
+        });
+
+        socket.on('disconnect', (reason) => {
+            console.log(`Client disconnected (${socket.id}):`, reason);
+        });
+
+        socket.on('error', (error) => {
+            console.error('Socket error:', error);
+        });
+    });
+
+    // Start data polling if not on Vercel
+    if (!process.env.VERCEL) {
+        // Keep Render backend alive with 30-second ping
+        const pingInterval = setInterval(async () => {
+            try {
+                await pingRenderBackend();
+            } catch (error) {
+                console.error('Ping error:', error);
+            }
+        }, 30000);
+
+        // Poll for data updates
+        const dataInterval = setInterval(async () => {
+            try {
+                const data = await fetchStockData();
+                if (data && io.sockets.sockets.size > 0) {
+                    io.emit('stockData', data);
+                }
+            } catch (error) {
+                console.error('Data fetch error:', error);
+                io.emit('error', { message: 'Failed to fetch stock data' });
+            }
+        }, 1000);
+
+        // Cleanup on process exit
+        process.on('SIGTERM', () => {
+            clearInterval(pingInterval);
+            clearInterval(dataInterval);
+            io.close();
+        });
     }
-
-    // Add client to list
-    const client = res;
-    clients.add(client);
-
-    // Remove client when connection closes
-    req.on('close', () => {
-        clients.delete(client);
-    });
-});
-
-// Function to broadcast data to all connected clients
-function broadcast(data) {
-    clients.forEach(client => {
-        try {
-            client.write(`data: ${JSON.stringify(data)}\n\n`);
-        } catch (error) {
-            console.error('Broadcast error:', error.message);
-            clients.delete(client);
-        }
-    });
 }
 
 // REST endpoint for initial data fetch
@@ -109,19 +133,5 @@ app.get('/data', async (req, res) => {
         });
     }
 });
-
-// Start backend processes if not on Vercel
-if (!process.env.VERCEL) {
-    // Keep Render backend alive with 30-second ping
-    setInterval(pingRenderBackend, 30000);
-
-    // Poll for data updates
-    setInterval(async () => {
-        const data = await fetchStockData();
-        if (data && clients.size > 0) {
-            broadcast(data);
-        }
-    }, 1000);
-}
 
 export default app;

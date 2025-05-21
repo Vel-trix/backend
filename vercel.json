@@ -2,9 +2,19 @@
   "version": 2,
   "routes": [
     {
-      "src": "/(.*)",
+      "src": "/socket.io/(.*)",
       "dest": "api/main.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "api/main.js",
+      "methods": ["GET", "POST", "OPTIONS"]
     }
-    
-  ]
+  ],
+  "functions": {
+    "api/main.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  }
 }
