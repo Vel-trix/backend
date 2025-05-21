@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie App</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        .movie-card {
+            transition: transform 0.3s ease;
+        }
+        .movie-card:hover {
+            transform: scale(1.05);
+        }
+        .movie-detail {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .active {
+            display: block;
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+    <header class="bg-gray-800 p-4 sticky top-0 z-50">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
+            <h1 class="text-3xl font-bold text-blue-500 mb-4 md:mb-0">MovieFlix</h1>
+            <div class="w-full md:w-1/2">
+                <input id="search" type="text" placeholder="Search for movies..." 
+                       class="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500">
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4">
+        <div class="flex flex-wrap mb-8">
+            <button id="now-playing" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2 mb-2">
+                Now Playing
+            </button>
+            <button id="popular" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2 mb-2">
+                Popular
+            </button>
+            <button id="top-rated" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2 mb-2">
+                Top Rated
+            </button>
+            <button id="upcoming" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-2">
+                Upcoming
+            </button>
+        </div>
+
+        <div id="loader" class="loader"></div>
+        
+        <div id="movies" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <!-- Movies will be inserted here by JavaScript -->
+        </div>
+
+        <div id="pagination" class="mt-8 flex justify-center">
+            <button id="prev-page" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded mr-4">
+                Previous
+            </button>
+            <span id="current-page" class="py-2 px-4 bg-gray-800 rounded">1</span>
+            <button id="next-page" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded ml-4">
+                Next
+            </button>
+        </div>
+    </main>
+
+    <div id="movie-detail" class="movie-detail">
+        <!-- Movie details will be inserted here by JavaScript -->
+    </div>
+
+    <script>
+        // API Configuration
+        const API_KEY = 'ccea33eff57085a37240864ea9a27b4a';
+        const BASE_URL = 'https://api.themoviedb.org/3';
+        const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/';
+        const BACKDROP_SIZE = 'w1280';
+        const POSTER_SIZE = 'w500';
+
+        // State variables
+        let currentPage = 1;
+        let currentCategory = 'popular';
+        let searchQuery = '';
+
+        // DOM Elements
+        const moviesContainer = document.getElementById('movies');
+        const movieDetailContainer = document.getElementById('movie-detail');
+        const searchInput = document.getElementById('search');
+        const loader = document.getElementById('loader');
+        const currentPageSpan = document.getElementById('current-page');
+        const prevPageBtn = document.getElementById('prev-page');
+        const nextPageBtn = document.getElementById('next-page');
+
+        // Event Listeners
+        document.getElementById('now-playing').addEventListener('click', () => fetchMovies('now_playing'));
+        document.getElementById('popular').addEventListener('click', () => fetchMovies('popular'));
+        document.getElementById('top-rated').addEventListener('click', () => fetchMovies('top_rated'));
+        document.getElementById('upcoming').addEventListener('click', () => fetchMovies('upcoming'));
+        
+        prevPageBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                if (searchQuery) {
+                    searchMovies(searchQuery);
+                } else {
+                    fetchMovies(currentCategory);
+                }
+            }
+        });
+        
+        nextPageBtn.addEventListener('click', () => {
+            currentPage++;
+            if (searchQuery) {
+                searchMovies(searchQuery);
+            } else {
+                fetchMovies(currentCategory);
+            }
+        });
+
+        searchInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                const query = e.target.value.trim();
+                if (query) {
+                    searchQuery = query;
+                    currentPage = 1;
+                    searchMovies(query);
+                } else {
+                    searchQuery = '';
+                    fetchMovies(currentCategory);
+                }
+            }
+        });
+
+        // Fetch movies based on category
+        async function fetchMovies(category) {
+            showLoader();
+            currentCategory = category;
+            searchQuery = '';
+            searchInput.value = '';
+            currentPageSpan.textContent = currentPage;
+            
+            try {
+                const response = await fetch(`${BASE_URL}/movie/${category}?api_key=${API_KEY}&page=${currentPage}`);
+                const data = await response.json();
+                displayMovies(data.results);
+            } catch (error) {
+                console.error('Error fetching movies:', error);
+                moviesContainer.innerHTML = '<p class="text-red-500">Failed to load movies. Please try again later.</p>';
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // Search for movies
+        async function searchMovies(query) {
+            showLoader();
+            currentPageSpan.textContent = currentPage;
+            
+            try {
+                const response = await fetch(`${BASE_URL}/search/movie?api_key=${API_KEY}&query=${query}&page=${currentPage}`);
+                const data = await response.json();
+                displayMovies(data.results);
+            } catch (error) {
+                console.error('Error searching movies:', error);
+                moviesContainer.innerHTML = '<p class="text-red-500">Failed to search movies. Please try again later.</p>';
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // Display movies in the grid
+        function displayMovies(movies) {
+            moviesContainer.innerHTML = '';
+            
+            if (movies.length === 0) {
+                moviesContainer.innerHTML = '<p class="col-span-full text-center text-xl">No movies found</p>';
+                return;
+            }
+
+            movies.forEach(movie => {
+                const movieCard = document.createElement('div');
+                movieCard.className = 'movie-card bg-gray-800 rounded overflow-hidden shadow-lg cursor-pointer';
+                movieCard.innerHTML = `
+                    <img src="${movie.poster_path ? IMAGE_BASE_URL + POSTER_SIZE + movie.poster_path : '/api/placeholder/300/450'}" 
+                         alt="${movie.title}" class="w-full h-64 object-cover">
+                    <div class="p-4">
+                        <h3 class="font-bold text-lg mb-2 truncate">${movie.title}</h3>
+                        <p class="text-gray-400 text-sm mb-2">${movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</p>
+                        <div class="flex items-center">
+                            <span class="inline-block bg-gray-700 rounded-full px-3 py-1 text-sm font-semibold">
+                                ⭐ ${movie.vote_average.toFixed(1)}
+                            </span>
+                        </div>
+                    </div>
+                `;
+                movieCard.addEventListener('click', () => fetchMovieDetails(movie.id));
+                moviesContainer.appendChild(movieCard);
+            });
+        }
+
+        // Fetch and display movie details
+        async function fetchMovieDetails(movieId) {
+            showLoader();
+            try {
+                const response = await fetch(`${BASE_URL}/movie/${movieId}?api_key=${API_KEY}&append_to_response=videos,credits`);
+                const movie = await response.json();
+                displayMovieDetails(movie);
+            } catch (error) {
+                console.error('Error fetching movie details:', error);
+                movieDetailContainer.innerHTML = '<p class="text-red-500 text-center mt-8">Failed to load movie details. Please try again later.</p>';
+            } finally {
+                hideLoader();
+            }
+        }
+
+        // Display movie details in a modal
+        function displayMovieDetails(movie) {
+            const trailer = movie.videos && movie.videos.results.find(video => video.type === 'Trailer');
+            const cast = movie.credits ? movie.credits.cast.slice(0, 5) : [];
+            
+            movieDetailContainer.innerHTML = `
+                <div class="max-w-4xl mx-auto my-8 bg-gray-800 rounded-lg overflow-hidden">
+                    <div class="relative">
+                        <img src="${movie.backdrop_path ? IMAGE_BASE_URL + BACKDROP_SIZE + movie.backdrop_path : '/api/placeholder/1280/720'}" 
+                             alt="${movie.title}" class="w-full h-64 object-cover">
+                        <button id="close-detail" class="absolute top-4 right-4 bg-gray-800 text-white p-2 rounded-full">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" 
+                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between mb-4">
+                            <h2 class="text-3xl font-bold">${movie.title}</h2>
+                            <div class="flex items-center mt-2 md:mt-0">
+                                <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold mr-2">
+                                    ⭐ ${movie.vote_average.toFixed(1)}
+                                </span>
+                                <span class="text-gray-400">${movie.runtime} min</span>
+                            </div>
+                        </div>
+                        <p class="italic text-gray-400 mb-4">${movie.tagline}</p>
+                        <div class="mb-4">
+                            <h3 class="text-xl font-semibold mb-2">Overview</h3>
+                            <p>${movie.overview}</p>
+                        </div>
+                        <div class="mb-4">
+                            <h3 class="text-xl font-semibold mb-2">Cast</h3>
+                            <div class="flex flex-wrap">
+                                ${cast.map(actor => `
+                                    <div class="mr-4 mb-2">
+                                        <div class="font-medium">${actor.name}</div>
+                                        <div class="text-sm text-gray-400">as ${actor.character}</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <h3 class="text-xl font-semibold mb-2">Genres</h3>
+                            <div class="flex flex-wrap">
+                                ${movie.genres.map(genre => `
+                                    <span class="bg-gray-700 px-3 py-1 rounded-full text-sm mr-2 mb-2">${genre.name}</span>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ${trailer ? `
+                            <div class="mt-6">
+                                <h3 class="text-xl font-semibold mb-2">Trailer</h3>
+                                <div class="aspect-w-16 aspect-h-9">
+                                    <iframe width="100%" height="315" src="https://www.youtube.com/embed/${trailer.key}" 
+                                            frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; 
+                                            gyroscope; picture-in-picture" allowfullscreen class="rounded"></iframe>
+                                </div>
+                            </div>
+                        ` : ''}
+                        <div class="mt-6">
+                            <p class="text-gray-400 text-sm">
+                                <span class="font-semibold">Release Date:</span> ${new Date(movie.release_date).toLocaleDateString()}
+                            </p>
+                            <p class="text-gray-400 text-sm">
+                                <span class="font-semibold">Status:</span> ${movie.status}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            movieDetailContainer.classList.add('active');
+            document.getElementById('close-detail').addEventListener('click', () => {
+                movieDetailContainer.classList.remove('active');
+            });
+        }
+
+        // Show loader
+        function showLoader() {
+            loader.style.display = 'block';
+        }
+
+        // Hide loader
+        function hideLoader() {
+            loader.style.display = 'none';
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchMovies('popular');
+        });
+    </script>
+</body>
+</html>

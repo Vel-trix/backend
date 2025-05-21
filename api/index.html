@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trishul MCX</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .animate-price-change {
+      animation: fadeIn 1s;
+    }
+    .theme-transition {
+      transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+    }
+    /* Add transition for card background color changes */
+    .card-transition {
+      transition: background-color 0.5s ease;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-200 theme-transition">
+  <div class="container mx-auto px-4 py-6 max-w-6xl">
+    <!-- Header -->
+    <div class="text-center mb-6">
+      <h1 class="text-3xl font-bold text-blue-600 dark:text-blue-400">Trishul MCX</h1>
+      <p class="text-gray-500 dark:text-gray-400">Real-time market data viewer</p>
+    </div>
+    
+    <!-- Selection Panel -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6 theme-transition">
+      <div class="flex flex-wrap items-center justify-between mb-3">
+        <h5 class="font-semibold text-lg">Select stocks:</h5>
+        
+        <!-- Dark Mode Toggle -->
+        <div class="flex items-center">
+          <span class="text-sm mr-2 dark:text-gray-300">🌞</span>
+          <label class="relative inline-block w-12 h-6">
+            <input type="checkbox" id="darkModeToggle" class="opacity-0 w-0 h-0">
+            <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-gray-300 dark:bg-gray-600 rounded-full transition-colors duration-300 before:absolute before:content-[''] before:h-4 before:w-4 before:left-1 before:bottom-1 before:bg-white before:rounded-full before:transition-transform before:duration-300 dark:before:bg-white checked:before:transform checked:before:translate-x-6 checked:bg-blue-600"></span>
+          </label>
+          <span class="text-sm ml-2 dark:text-gray-300">🌙</span>
+        </div>
+      </div>
+      
+      <!-- Stock buttons in compact grid -->
+      <div class="mb-4 grid grid-cols-3 sm:grid-cols-5 gap-2" id="stockButtons">
+        <button class="bg-white hover:bg-blue-500 hover:text-white text-blue-600 border border-blue-600 rounded-md px-2 py-1 text-sm transition-colors duration-200 dark:bg-gray-700 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-600 theme-transition" data-symbol="GOLD">Gold</button>
+        <button class="bg-white hover:bg-blue-500 hover:text-white text-blue-600 border border-blue-600 rounded-md px-2 py-1 text-sm transition-colors duration-200 dark:bg-gray-700 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-600 theme-transition" data-symbol="SILVER">Silver</button>
+        <button class="bg-white hover:bg-blue-500 hover:text-white text-blue-600 border border-blue-600 rounded-md px-2 py-1 text-sm transition-colors duration-200 dark:bg-gray-700 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-600 theme-transition" data-symbol="COPPER">Copper</button>
+        <button class="bg-white hover:bg-blue-500 hover:text-white text-blue-600 border border-blue-600 rounded-md px-2 py-1 text-sm transition-colors duration-200 dark:bg-gray-700 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-600 theme-transition" data-symbol="CRUDEOIL">Crude Oil</button>
+        <button class="bg-white hover:bg-blue-500 hover:text-white text-blue-600 border border-blue-600 rounded-md px-2 py-1 text-sm transition-colors duration-200 dark:bg-gray-700 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-600 theme-transition" data-symbol="NATURALGAS">Natural Gas</button>
+        <button class="bg-white hover:bg-blue-500 hover:text-white text-blue-600 border border-blue-600 rounded-md px-2 py-1 text-sm transition-colors duration-200 dark:bg-gray-700 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-600 theme-transition" data-symbol="ALUMINIUM">Aluminium</button>
+        <button class="bg-white hover:bg-blue-500 hover:text-white text-blue-600 border border-blue-600 rounded-md px-2 py-1 text-sm transition-colors duration-200 dark:bg-gray-700 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-600 theme-transition" data-symbol="ZINC">Zinc</button>
+        <button class="bg-white hover:bg-blue-500 hover:text-white text-blue-600 border border-blue-600 rounded-md px-2 py-1 text-sm transition-colors duration-200 dark:bg-gray-700 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-600 theme-transition" data-symbol="LEAD">Lead</button>
+        <button class="bg-white hover:bg-blue-500 hover:text-white text-blue-600 border border-blue-600 rounded-md px-2 py-1 text-sm transition-colors duration-200 dark:bg-gray-700 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-600 theme-transition" data-symbol="NICKEL">Nickel</button>
+      </div>
+      
+      <div class="flex flex-wrap items-center justify-between">
+        <div>
+          <h6 class="font-semibold mb-2 text-sm">Selected:</h6>
+          <div id="selectedStocks" class="flex flex-wrap">
+            <span class="text-gray-500 dark:text-gray-400 text-sm">None selected. Click stocks above to add them.</span>
+          </div>
+        </div>
+        <button class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors duration-200 mt-2" id="resetButton">Reset</button>
+      </div>
+    </div>
+    
+    <!-- Compact Control Panel -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 mb-6 flex flex-wrap items-center justify-between theme-transition">
+      <!-- View Toggle -->
+      <div class="flex items-center mr-4">
+        <span class="text-xs text-gray-600 dark:text-gray-400 mr-2">Normal</span>
+        <label class="relative inline-block w-10 h-5">
+          <input type="checkbox" id="viewToggle" class="opacity-0 w-0 h-0">
+          <span class="absolute cursor-pointer top-0 left-0 right-0 bottom-0 bg-gray-300 dark:bg-gray-600 rounded-full transition-colors duration-300 before:absolute before:content-[''] before:h-3 before:w-3 before:left-1 before:bottom-1 before:bg-white before:rounded-full before:transition-transform before:duration-300 dark:before:bg-white checked:before:transform checked:before:translate-x-5 checked:bg-blue-600"></span>
+        </label>
+        <span class="text-xs text-gray-600 dark:text-gray-400 ml-2">Compact</span>
+      </div>
+      
+      <!-- Item Count Selector -->
+      <div class="inline-flex rounded-md shadow-sm" role="group">
+        <button type="button" class="px-3 py-1 text-xs font-medium text-blue-600 bg-white border border-blue-600 rounded-l-lg hover:bg-blue-50 dark:bg-gray-700 dark:text-blue-400 dark:border-blue-500 dark:hover:bg-gray-600 theme-transition" data-count="1">1</button>
+        <button type="button" class="px-3 py-1 text-xs font-medium text-blue-600 bg-white border-t border-b border-blue-600 hover:bg-blue-50 dark:bg-gray-700 dark:text-blue-400 dark:border-blue-500 dark:hover:bg-gray-600 theme-transition" data-count="2">2</button>
+        <button type="button" class="px-3 py-1 text-xs font-medium text-blue-600 bg-white border-t border-b border-blue-600 hover:bg-blue-50 dark:bg-gray-700 dark:text-blue-400 dark:border-blue-500 dark:hover:bg-gray-600 theme-transition" data-count="4">4</button>
+        <button type="button" class="px-3 py-1 text-xs font-medium text-white bg-blue-600 border border-blue-600 rounded-r-lg hover:bg-blue-700 dark:bg-blue-600 dark:border-blue-700 dark:hover:bg-blue-700 theme-transition" data-count="all">All</button>
+      </div>
+    </div>
+    
+    <!-- Loading Indicator -->
+    <div id="loading" class="text-center py-10">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent dark:border-blue-400"></div>
+      <p class="mt-2 text-gray-600 dark:text-gray-400">Loading data...</p>
+    </div>
+    
+    <!-- Data Container -->
+    <div id="data-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // State variables
+      let marketData = [];
+      let previousData = {};
+      let visibleCount = 'all';
+      let selectedSymbols = loadSelectedSymbols() || [];
+      let compactView = loadCompactViewSetting() || false;
+      let darkMode = loadDarkModeSetting() || false;
+      
+      // Initialize toggles
+      const viewToggle = document.getElementById('viewToggle');
+      const darkModeToggle = document.getElementById('darkModeToggle');
+      viewToggle.checked = compactView;
+      darkModeToggle.checked = darkMode;
+      
+      // Apply dark mode if needed
+      if (darkMode) {
+        document.documentElement.classList.add('dark');
+      }
+      
+      // Update UI to show currently selected symbols
+      updateSelectedSymbolsUI();
+      
+      // Fetch data from API
+      async function fetchData() {
+        try {
+          const response = await fetch('https://backendmix.vercel.app/data');
+          const data = await response.json();
+          
+          if (data && data.data && Array.isArray(data.data)) {
+            // Process the market data
+            marketData = data.data.map(item => {
+              const result = {...item};
+              const previous = previousData[item.Symbol];
+              const currentLTP = parseFloat(item['Last Traded Price']);
+              
+              if (previous) {
+                const previousLTP = parseFloat(previous['Last Traded Price']);
+                
+                // If price changes, update status flags
+                if (currentLTP !== previousLTP) {
+                  result.priceChanged = true;
+                  result.priceIncreased = currentLTP > previousLTP;
+                  result.lastChangeDirection = currentLTP > previousLTP ? 'increased' : 'decreased';
+                } else {
+                  // If price hasn't changed, maintain previous status
+                  result.priceChanged = false;
+                  // Keep the last known change direction
+                  result.lastChangeDirection = previous.lastChangeDirection || null;
+                }
+              } else {
+                // First time seeing this symbol
+                result.priceChanged = false;
+                result.lastChangeDirection = null;
+              }
+              
+              return result;
+            });
+            
+            // Update previous data for next comparison
+            previousData = {};
+            marketData.forEach(item => {
+              previousData[item.Symbol] = {...item};
+            });
+            
+            renderData();
+          } else {
+            document.getElementById('data-container').innerHTML = 
+              '<div class="col-span-full p-4 bg-red-100 text-red-700 rounded-lg dark:bg-red-900 dark:text-red-300 theme-transition">Invalid data format received from API</div>';
+          }
+        } catch (error) {
+          console.error('Error fetching data:', error);
+          document.getElementById('data-container').innerHTML = 
+            '<div class="col-span-full p-4 bg-red-100 text-red-700 rounded-lg dark:bg-red-900 dark:text-red-300 theme-transition">Failed to load data. Please try again later.</div>';
+        } finally {
+          document.getElementById('loading').style.display = 'none';
+        }
+      }
+      
+      // Render data based on current selected symbols and visible count
+      function renderData() {
+        const container = document.getElementById('data-container');
+        container.innerHTML = '';
+        
+        let filteredData = marketData;
+        
+        // Apply symbol filter if any selected
+        if (selectedSymbols.length > 0) {
+          filteredData = marketData.filter(item => {
+            return selectedSymbols.some(symbol => 
+              item.Symbol.toLowerCase().includes(symbol.toLowerCase())
+            );
+          });
+        }
+        
+        // Apply count limit if not "all"
+        const dataToShow = visibleCount === 'all' ? 
+          filteredData : filteredData.slice(0, parseInt(visibleCount));
+        
+        if (dataToShow.length === 0) {
+          if (selectedSymbols.length > 0) {
+            container.innerHTML = '<div class="col-span-full p-4 bg-blue-50 text-blue-700 rounded-lg dark:bg-blue-900/30 dark:text-blue-300 theme-transition">No matching symbols found. Try selecting different stocks.</div>';
+          } else {
+            container.innerHTML = '<div class="col-span-full p-4 bg-blue-50 text-blue-700 rounded-lg dark:bg-blue-900/30 dark:text-blue-300 theme-transition">No stocks selected. Please select stocks above to view data.</div>';
+          }
+          return;
+        }
+        
+        dataToShow.forEach(item => {
+          const card = document.createElement('div');
+          
+          const changeValue = parseFloat(item['Net Change In Rs']);
+          const changeClass = changeValue >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+          const changePrefix = changeValue >= 0 ? '+' : '';
+          
+          // Determine card background color based on price change
+          let cardBgClass = 'bg-white dark:bg-gray-800';
+          let headerBgClass = 'bg-gray-50 dark:bg-gray-700';
+          let footerBgClass = 'bg-gray-50 dark:bg-gray-700';
+          
+          // Apply entire card background color changes
+          if (item.lastChangeDirection === 'increased') {
+            cardBgClass = 'bg-green-50 dark:bg-green-900/30';
+            headerBgClass = 'bg-green-100 dark:bg-green-800/50';
+            footerBgClass = 'bg-green-100 dark:bg-green-800/50';
+          } else if (item.lastChangeDirection === 'decreased') {
+            cardBgClass = 'bg-red-50 dark:bg-red-900/30';
+            headerBgClass = 'bg-red-100 dark:bg-red-800/50';
+            footerBgClass = 'bg-red-100 dark:bg-red-800/50';
+          }
+          
+          // Animation class for price changes
+          let priceAnimClass = '';
+          if (item.priceChanged) {
+            priceAnimClass = 'animate-price-change';
+          }
+          
+          // Determine which fields to show based on compact view
+          let tableContent = '';
+          if (compactView) {
+            // In compact view, show only essential information in a horizontal layout
+            tableContent = `
+              <div class="flex flex-row flex-wrap justify-between text-sm">
+                <div class="flex items-center mb-1 mr-3">
+                  <span class="font-semibold mr-2">Symbol:</span>
+                  <span>${item['Symbol']}</span>
+                </div>
+                <div class="flex items-center mb-1 mr-3">
+                  <span class="font-semibold mr-2">LTP:</span>
+                  <span class="${changeClass} ${priceAnimClass}">${item['Last Traded Price']}</span>
+                </div>
+                <div class="flex items-center mb-1 mr-3">
+                  <span class="font-semibold mr-2">Chg:</span>
+                  <span class="${changeClass}">${changePrefix}${item['Net Change In Rs']}</span>
+                </div>
+                <div class="flex items-center mb-1">
+                  <span class="font-semibold mr-2">%:</span>
+                  <span class="${changeClass}">${item['% Net Change In Rs']}%</span>
+                </div>
+              </div>
+            `;
+          } else {
+            // In normal view, show all information
+            tableContent = `
+              <div class="grid grid-cols-2 gap-2">
+                <div class="font-semibold">Symbol</div>
+                <div>${item['Symbol']}</div>
+                <div class="font-semibold">Last Traded Price</div>
+                <div class="${changeClass} ${priceAnimClass}">${item['Last Traded Price']}</div>
+                <div class="font-semibold">Change</div>
+                <div class="${changeClass}">${changePrefix}${item['Net Change In Rs']} (${item['% Net Change In Rs']}%)</div>
+                <div class="font-semibold">High</div>
+                <div>${item['High']}</div>
+                <div class="font-semibold">Low</div>
+                <div>${item['Low']}</div>
+                <div class="font-semibold">Open</div>
+                <div>${item['Open']}</div>
+                <div class="font-semibold">Close</div>
+                <div>${item['Close']}</div>
+              </div>
+            `;
+          }
+          
+          card.className = `${cardBgClass} rounded-lg shadow-md overflow-hidden h-full card-transition theme-transition`;
+          card.innerHTML = `
+            <div class="flex justify-between items-center ${headerBgClass} px-4 py-2 border-b dark:border-gray-600 theme-transition">
+              <span class="font-medium">${item['Exchange']}</span>
+              <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded">${item['Ser/Exp']}</span>
+            </div>
+            <div class="p-4">
+              ${tableContent}
+            </div>
+            <div class="${footerBgClass} px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-t dark:border-gray-600 theme-transition">
+              Last Update: ${item['Last Update Time']}
+            </div>
+          `;
+          
+          container.appendChild(card);
+        });
+      }
+      
+      // Load selected symbols from localStorage
+      function loadSelectedSymbols() {
+        const saved = localStorage.getItem('trishulMCX_selectedSymbols');
+        return saved ? JSON.parse(saved) : null;
+      }
+      
+      // Save selected symbols to localStorage
+      function saveSelectedSymbols() {
+        localStorage.setItem('trishulMCX_selectedSymbols', JSON.stringify(selectedSymbols));
+      }
+      
+      // Load compact view setting from localStorage
+      function loadCompactViewSetting() {
+        return localStorage.getItem('trishulMCX_compactView') === 'true';
+      }
+      
+      // Save compact view setting to localStorage
+      function saveCompactViewSetting(isCompact) {
+        localStorage.setItem('trishulMCX_compactView', isCompact);
+      }
+      
+      // Load dark mode setting from localStorage
+      function loadDarkModeSetting() {
+        return localStorage.getItem('trishulMCX_darkMode') === 'true';
+      }
+      
+      // Save dark mode setting to localStorage
+      function saveDarkModeSetting(isDark) {
+        localStorage.setItem('trishulMCX_darkMode', isDark);
+      }
+      
+      // Update the UI to show currently selected symbols
+      function updateSelectedSymbolsUI() {
+        const container = document.getElementById('selectedStocks');
+        
+        if (selectedSymbols.length === 0) {
+          container.innerHTML = '<span class="text-gray-500 dark:text-gray-400 text-sm">None selected. Click stocks above to add them.</span>';
+          return;
+        }
+        
+        container.innerHTML = '';
+        selectedSymbols.forEach(symbol => {
+          const badge = document.createElement('span');
+          badge.className = 'inline-flex items-center bg-blue-100 text-blue-800 text-xs font-medium mr-2 mb-2 px-2 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300 theme-transition';
+          badge.innerHTML = `${symbol} <button class="ml-1 bg-blue-200 text-blue-800 rounded-full w-4 h-4 inline-flex items-center justify-center hover:bg-blue-300 remove-symbol dark:bg-blue-800 dark:text-blue-300 dark:hover:bg-blue-700 theme-transition" data-symbol="${symbol}">×</button>`;
+          container.appendChild(badge);
+        });
+        
+        // Add event listeners to the remove buttons
+        document.querySelectorAll('.remove-symbol').forEach(button => {
+          button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const symbolToRemove = this.getAttribute('data-symbol');
+            removeSymbol(symbolToRemove);
+          });
+        });
+        
+        // Update the stock buttons to show which are selected
+        document.querySelectorAll('#stockButtons button').forEach(button => {
+          const symbol = button.getAttribute('data-symbol');
+          if (selectedSymbols.includes(symbol)) {
+            button.className = 'bg-blue-600 text-white border border-blue-600 rounded-md px-2 py-1 text-sm transition-colors duration-200 dark:bg-blue-700 dark:border-blue-800 theme-transition';
+          } else {
+            button.className = 'bg-white hover:bg-blue-500 hover:text-white text-blue-600 border border-blue-600 rounded-md px-2 py-1 text-sm transition-colors duration-200 dark:bg-gray-700 dark:border-blue-500 dark:text-blue-400 dark:hover:bg-blue-600 theme-transition';
+          }
+        });
+      }
+      
+      // Add a symbol to the selected list
+      function addSymbol(symbol) {
+        if (!selectedSymbols.includes(symbol)) {
+          selectedSymbols.push(symbol);
+          saveSelectedSymbols();
+          updateSelectedSymbolsUI();
+          renderData();
+        }
+      }
+      
+      // Remove a symbol from the selected list
+      function removeSymbol(symbol) {
+        selectedSymbols = selectedSymbols.filter(s => s !== symbol);
+        saveSelectedSymbols();
+        updateSelectedSymbolsUI();
+        renderData();
+      }
+      
+      // Reset all selections
+      function resetSelections() {
+        selectedSymbols = [];
+        saveSelectedSymbols();
+        updateSelectedSymbolsUI();
+        renderData();
+      }
+      
+      // Toggle dark mode
+      function toggleDarkMode() {
+        darkMode = !darkMode;
+        saveDarkModeSetting(darkMode);
+        
+        if (darkMode) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+      
+      // Set up event listeners for stock buttons
+      document.querySelectorAll('#stockButtons button').forEach(button => {
+        button.addEventListener('click', function() {
+          const symbol = this.getAttribute('data-symbol');
+          if (selectedSymbols.includes(symbol)) {
+            removeSymbol(symbol);
+          } else {
+            addSymbol(symbol);
+          }
+        });
+      });
+      
+      // Set up event listener for reset button
+      document.getElementById('resetButton').addEventListener('click', resetSelections);
+      
+      // Set up event listeners for count buttons
+      document.querySelectorAll('[data-count]').forEach(button => {
+        button.addEventListener('click', function() {
+          document.querySelectorAll('[data-count]').forEach(btn => {
+            btn.classList.remove('bg-blue-600', 'text-white');
+            btn.classList.add('bg-white', 'text-blue-600', 'dark:bg-gray-700', 'dark:text-blue-400');
+          });
+          this.classList.remove('bg-white', 'text-blue-600', 'dark:bg-gray-700', 'dark:text-blue-400');
+          this.classList.add('bg-blue-600', 'text-white');
+          visibleCount = this.getAttribute('data-count');
+          renderData();
+        });
+      });
+      
+      // Set up event listener for view toggle
+      viewToggle.addEventListener('change', function() {
+        compactView = this.checked;
+        saveCompactViewSetting(compactView);
+        renderData();
+      });
+      
+      // Set up event listener for dark mode toggle
+      darkModeToggle.addEventListener('change', toggleDarkMode);
+      
+      // Initial data fetch
+      fetchData();
+      
+      // Set up auto-refresh every second
+      setInterval(fetchData, 1000);
+    });
+  </script>
+</body>
+</html>
