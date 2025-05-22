@@ -11,47 +11,54 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
             margin: 0;
             padding: 0;
-            background-color: #1c1c1e; /* Dark background */
-            color: #ffffff; /* White text */
-            padding-top: 10px; /* Adjusted space from top */
+            background-color: #0a0a0a; /* Darker background for better contrast */
+            color: #ffffff;
+            padding-top: 20px;
             -webkit-text-size-adjust: 100%;
             -webkit-tap-highlight-color: transparent;
         }
         .container {
             width: 100%;
-            max-width: 100%; /* Similar width to phone screen */
+            max-width: 100%;
             margin: 0 auto;
-            padding: 0 15px;
+            padding: 0 20px;
             box-sizing: border-box;
         }
         h1 {
             color: #ffffff;
             text-align: left;
             margin: 0;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             padding: 0;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
         #currentDate {
-            color: #a9a9a9;
-            font-size: 0.9rem;
-            margin: 5px 0 10px 0;
+            color: #8e8e93;
+            font-size: 0.95rem;
+            margin: 8px 0 15px 0;
             padding: 0;
+            font-weight: 500;
         }
         .status {
             text-align: center;
-            margin-bottom: 10px; /* Reduced space below status */
-            padding: 6px;
-            border-radius: 5px;
-            font-size: 0.8rem;
+            margin-bottom: 15px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
             color: #ffffff;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
         .connected {
-            background-color: #303030; /* Darker background for status */
-            color: #34c759; /* Green for connected */
+            background-color: rgba(52, 199, 89, 0.15);
+            color: #34c759;
+            border: 1px solid rgba(52, 199, 89, 0.3);
         }
         .disconnected {
-            background-color: #303030; /* Darker background for status */
-            color: #ff3b30; /* Red for disconnected */
+            background-color: rgba(255, 59, 48, 0.15);
+            color: #ff3b30;
+            border: 1px solid rgba(255, 59, 48, 0.3);
         }
 
         /* Stock List and Item Styling */
@@ -65,98 +72,79 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0; /* Reduced vertical padding */
-            border-bottom: 1px solid #303030; /* Darker separator */
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            background-color: #1c1c1e;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+
+        .stock-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .stock-info {
             flex-grow: 1;
-            min-width: 0; /* Prevent flex item from overflowing */
+            min-width: 0;
         }
 
         .stock-symbol {
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 600;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            color: #ffffff;
         }
 
         .stock-name {
-            font-size: 0.8rem;
-            color: #a9a9a9; /* Grey text for name */
+            font-size: 0.85rem;
+            color: #8e8e93;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-        }
-
-        .stock-graph {
-            width: 80px; /* Placeholder width for graph */
-            height: 40px;
-            background-color: #303030; /* Placeholder background */
-            margin: 0 15px; /* Spacing around graph */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 0.8rem;
-            color: #a9a9a9;
         }
 
         .stock-price-change {
             text-align: right;
-            margin-left: 10px;
-            min-width: 100px; /* Ensure price section has minimum width */
+            margin-left: 15px;
+            min-width: 120px;
         }
 
         .stock-price {
-            font-size: 1rem;
+            font-size: 1.1rem;
             font-weight: 600;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
+            color: #ffffff;
         }
 
         .stock-change {
             display: inline-block;
-            padding: 3px 5px;
-            border-radius: 4px;
-            font-size: 0.8rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.85rem;
             font-weight: 600;
         }
 
         .change-positive {
-            background-color: #34c759; /* Green background */
-            color: #1c1c1e; /* Dark text for contrast */
+            background-color: rgba(52, 199, 89, 0.15);
+            color: #34c759;
+            border: 1px solid rgba(52, 199, 89, 0.3);
         }
 
         .change-negative {
-            background-color: #ff3b30; /* Red background */
-            color: #1c1c1e; /* Dark text for contrast */
-        }
-
-        /* Animation for price change */
-        @keyframes price-flash-positive {
-            0% { background-color: transparent; color: #34c759; }
-            50% { background-color: #34c759; color: #1c1c1e; }
-            100% { background-color: transparent; color: #34c759; }
-        }
-
-        @keyframes price-flash-negative {
-            0% { background-color: transparent; color: #ff3b30; }
-            50% { background-color: #ff3b30; color: #1c1c1e; }
-            100% { background-color: transparent; color: #ff3b30; }
-        }
-
-        .flash-positive .stock-price {
-             animation: price-flash-positive 1s ease-out;
-        }
-
-         .flash-negative .stock-price {
-             animation: price-flash-negative 1s ease-out;
+            background-color: rgba(255, 59, 48, 0.15);
+            color: #ff3b30;
+            border: 1px solid rgba(255, 59, 48, 0.3);
         }
 
         /* Search/Filter Styling */
         .search-container {
-            padding: 8px 0 12px 0;
+            padding: 12px 0 20px 0;
             margin-bottom: 0;
             display: flex;
             justify-content: center;
@@ -165,25 +153,35 @@
 
         #stockSearch {
             width: 100%;
-            padding: 8px 12px;
+            padding: 12px 16px;
             border: none;
-            border-radius: 8px;
-            background-color: #303030; /* Dark input background */
-            color: #ffffff; /* White input text */
-            font-size: 0.9rem;
+            border-radius: 12px;
+            background-color: #1c1c1e;
+            color: #ffffff;
+            font-size: 1rem;
             box-sizing: border-box;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transition: box-shadow 0.2s ease;
+        }
+
+        #stockSearch:focus {
+            outline: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         #stockSearch::placeholder {
-            color: #a9a9a9; /* Grey placeholder text */
+            color: #8e8e93;
         }
 
         /* Loading/No Data Styling */
         .info-message {
             text-align: center;
-            padding: 15px;
-            color: #a9a9a9;
-            font-size: 0.9rem;
+            padding: 20px;
+            color: #8e8e93;
+            font-size: 1rem;
+            background-color: #1c1c1e;
+            border-radius: 12px;
+            margin: 10px 0;
         }
 
          /* Hide original table display */
@@ -207,33 +205,42 @@
             position: relative;
             background-color: #1c1c1e;
             margin: 5% auto;
-            padding: 15px;
+            padding: 20px;
             width: 90%;
             max-width: 400px;
-            border-radius: 12px;
+            border-radius: 16px;
             box-sizing: border-box;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
         }
 
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #2c2c2e;
         }
 
         .modal-title {
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             color: #ffffff;
             margin: 0;
+            font-weight: 600;
         }
 
         .close-modal {
             background: none;
             border: none;
-            color: #ffffff;
-            font-size: 1.5rem;
+            color: #8e8e93;
+            font-size: 1.8rem;
             cursor: pointer;
             padding: 0;
+            transition: color 0.2s ease;
+        }
+
+        .close-modal:hover {
+            color: #ffffff;
         }
 
         .stock-selection {
@@ -245,15 +252,20 @@
         .stock-checkbox {
             display: flex;
             align-items: center;
-            padding: 8px;
-            border-bottom: 1px solid #303030;
+            padding: 12px;
+            border-bottom: 1px solid #2c2c2e;
+            transition: background-color 0.2s ease;
+        }
+
+        .stock-checkbox:hover {
+            background-color: #2c2c2e;
         }
 
         .stock-checkbox label {
-            margin-left: 8px;
+            margin-left: 12px;
             color: #ffffff;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 1rem;
         }
 
         .modal-actions {
@@ -264,40 +276,52 @@
         }
 
         .modal-button {
-            padding: 6px 12px;
+            padding: 10px 16px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 0.8rem;
-            font-weight: 500;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
         }
 
         .select-all {
-            background-color: #303030;
+            background-color: #2c2c2e;
             color: #ffffff;
+        }
+
+        .select-all:hover {
+            background-color: #3c3c3e;
         }
 
         .apply-changes {
             background-color: #34c759;
-            color: #1c1c1e;
+            color: #ffffff;
+        }
+
+        .apply-changes:hover {
+            background-color: #30b350;
         }
 
         /* Edit Button Styles */
         .edit-button {
-            background-color: #303030;
+            background-color: #2c2c2e;
             color: #ffffff;
             border: none;
-            border-radius: 6px;
-            padding: 4px 8px;
+            border-radius: 8px;
+            padding: 8px 16px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
+            transition: all 0.2s ease;
         }
 
         .edit-button:hover {
-            background-color: #404040;
+            background-color: #3c3c3e;
+            transform: translateY(-1px);
         }
 
         /* Header Container for Stocks title and Edit button */
@@ -315,10 +339,68 @@
 
         /* Checkbox Styles */
         input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             cursor: pointer;
             accent-color: #34c759;
+            border-radius: 4px;
+        }
+
+        .stock-details-content {
+            max-width: 500px;
+        }
+
+        .stock-details-header {
+            padding: 20px;
+            background-color: #2c2c2e;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stock-details-symbol {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .stock-details-price {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .stock-details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            padding: 0 20px;
+        }
+
+        .detail-item {
+            background-color: #2c2c2e;
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        .detail-label {
+            font-size: 0.9rem;
+            color: #8e8e93;
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .detail-value.positive {
+            color: #34c759;
+        }
+
+        .detail-value.negative {
+            color: #ff3b30;
         }
     </style>
 </head>
@@ -340,6 +422,25 @@
         <ul class="stock-list" id="stockList">
             <li class="info-message">Loading data...</li>
         </ul>
+    </div>
+
+    <!-- Stock Details Modal -->
+    <div id="stockDetailsModal" class="modal">
+        <div class="modal-content stock-details-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Stock Details</h2>
+                <button class="close-modal" onclick="closeDetailsModal()">&times;</button>
+            </div>
+            <div class="stock-details-body">
+                <div class="stock-details-header">
+                    <div class="stock-details-symbol"></div>
+                    <div class="stock-details-price"></div>
+                </div>
+                <div class="stock-details-grid">
+                    <!-- Details will be populated dynamically -->
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Stock Selection Modal -->
@@ -488,7 +589,7 @@
                 previousPrices.set(stock.Symbol, currentPrice);
 
                 listHTML += `
-                    <li class="stock-item ${flashClass}">
+                    <li class="stock-item ${flashClass}" onclick="openDetailsModal(${JSON.stringify(stock).replace(/"/g, '&quot;')})">
                         <div class="stock-info">
                             <div class="stock-symbol">${stock.Symbol}</div>
                             <div class="stock-name">${stock.Symbol}</div>
@@ -587,10 +688,52 @@
 
         // Close modal when clicking outside
         window.onclick = function(event) {
-            const modal = document.getElementById('stockModal');
-            if (event.target === modal) {
+            const stockModal = document.getElementById('stockModal');
+            const stockDetailsModal = document.getElementById('stockDetailsModal');
+            if (event.target === stockModal) {
                 closeModal();
             }
+            if (event.target === stockDetailsModal) {
+                closeDetailsModal();
+            }
+        }
+
+        function openDetailsModal(stock) {
+            const modal = document.getElementById('stockDetailsModal');
+            const symbolElement = modal.querySelector('.stock-details-symbol');
+            const priceElement = modal.querySelector('.stock-details-price');
+            const gridElement = modal.querySelector('.stock-details-grid');
+
+            // Set header information
+            symbolElement.textContent = stock.Symbol;
+            priceElement.textContent = `₹${parseFloat(stock['Last Traded Price']).toFixed(2)}`;
+            
+            // Create grid items for each detail
+            const details = [
+                { label: 'Open', value: stock['Open'] },
+                { label: 'High', value: stock['High'] },
+                { label: 'Low', value: stock['Low'] },
+                { label: 'Previous Close', value: stock['Previous Close'] },
+                { label: 'Net Change', value: stock['Net Change In Rs'], isChange: true },
+                { label: 'Change %', value: stock['% Net Change In Rs'], isChange: true },
+                { label: 'Volume', value: stock['Volume'] },
+                { label: 'Value', value: stock['Value'] }
+            ];
+
+            gridElement.innerHTML = details.map(detail => `
+                <div class="detail-item">
+                    <div class="detail-label">${detail.label}</div>
+                    <div class="detail-value ${detail.isChange ? (parseFloat(detail.value) >= 0 ? 'positive' : 'negative') : ''}">
+                        ${detail.isChange ? (parseFloat(detail.value) >= 0 ? '+' : '') : ''}${detail.value}
+                    </div>
+                </div>
+            `).join('');
+
+            modal.style.display = 'block';
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('stockDetailsModal').style.display = 'none';
         }
 
     </script>
