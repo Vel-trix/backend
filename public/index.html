@@ -81,6 +81,28 @@
             cursor: pointer;
         }
 
+        @keyframes flashGreen {
+            0% { background-color: #1c1c1e; }
+            10% { background-color: rgba(52, 199, 89, 0.3); }
+            90% { background-color: rgba(52, 199, 89, 0.3); }
+            100% { background-color: #1c1c1e; }
+        }
+
+        @keyframes flashRed {
+            0% { background-color: #1c1c1e; }
+            10% { background-color: rgba(255, 59, 48, 0.3); }
+            90% { background-color: rgba(255, 59, 48, 0.3); }
+            100% { background-color: #1c1c1e; }
+        }
+
+        .flash-positive {
+            animation: flashGreen 2s ease;
+        }
+
+        .flash-negative {
+            animation: flashRed 2s ease;
+        }
+
         .stock-item:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -579,7 +601,7 @@
 
                 let flashClass = '';
                 if (previousPrice !== undefined && currentPrice !== previousPrice) {
-                    flashClass = netChange >= 0 ? 'flash-positive' : 'flash-negative';
+                    flashClass = currentPrice > previousPrice ? 'flash-positive' : 'flash-negative';
                 }
 
                 const changeClass = netChange >= 0 ? 'change-positive' : 'change-negative';
@@ -603,6 +625,16 @@
                 `;
             });
             stockListUl.innerHTML = listHTML;
+
+            // Remove animation classes after they complete
+            const items = stockListUl.getElementsByClassName('stock-item');
+            Array.from(items).forEach(item => {
+                if (item.classList.contains('flash-positive') || item.classList.contains('flash-negative')) {
+                    setTimeout(() => {
+                        item.classList.remove('flash-positive', 'flash-negative');
+                    }, 2000);
+                }
+            });
         }
 
         // Add event listener for search input
@@ -715,9 +747,7 @@
                 { label: 'Low', value: stock['Low'] },
                 { label: 'Previous Close', value: stock['Previous Close'] },
                 { label: 'Net Change', value: stock['Net Change In Rs'], isChange: true },
-                { label: 'Change %', value: stock['% Net Change In Rs'], isChange: true },
-                { label: 'Volume', value: stock['Volume'] },
-                { label: 'Value', value: stock['Value'] }
+                { label: 'Change %', value: stock['% Net Change In Rs'], isChange: true }
             ];
 
             gridElement.innerHTML = details.map(detail => `
