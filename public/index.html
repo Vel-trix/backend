@@ -387,8 +387,8 @@
             });
 
             socket.on('connect', () => {
-                statusDiv.textContent = 'UPDATING LIVE';
-                statusDiv.className = 'UPDATING FAILED';
+                statusDiv.textContent = 'Connected to live updates';
+                statusDiv.className = 'status connected';
             });
 
             socket.on('disconnect', () => {
