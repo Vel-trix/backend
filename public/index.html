@@ -6,59 +6,268 @@
     <title>Live Stock Rates</title>
     <!-- Add Socket.IO client library -->
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <!-- Add SF Pro Display font -->
+    <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/sf-pro-display">
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        :root {
+            --background-primary: #000000;
+            --background-secondary: #1c1c1e;
+            --background-tertiary: #2c2c2e;
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.6);
+            --accent-positive: #30d158;
+            --accent-negative: #ff453a;
+            --card-background: rgba(28, 28, 30, 0.8);
+            --blur-background: rgba(0, 0, 0, 0.5);
+        }
+
+        * {
             margin: 0;
             padding: 0;
-            background-color: #0a0a0a; /* Darker background for better contrast */
-            color: #ffffff;
-            padding-top: 20px;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
             -webkit-text-size-adjust: 100%;
             -webkit-tap-highlight-color: transparent;
         }
+
         .container {
             width: 100%;
             max-width: 100%;
             margin: 0 auto;
-            padding: 0 20px;
-            box-sizing: border-box;
+            padding: 16px;
         }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 8px 0;
+            position: sticky;
+            top: 0;
+            background: var(--background-primary);
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
         h1 {
-            color: #ffffff;
-            text-align: left;
-            margin: 0;
-            font-size: 1.8rem;
-            padding: 0;
+            color: var(--text-primary);
+            font-size: 28px;
             font-weight: 700;
             letter-spacing: -0.5px;
         }
+
         #currentDate {
-            color: #8e8e93;
-            font-size: 0.95rem;
-            margin: 8px 0 15px 0;
-            padding: 0;
+            color: var(--text-secondary);
+            font-size: 15px;
+            margin: 4px 0;
             font-weight: 500;
         }
+
         .status {
             text-align: center;
-            margin-bottom: 15px;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            color: #ffffff;
+            margin-bottom: 16px;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 14px;
             font-weight: 500;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
+
         .connected {
-            background-color: rgba(52, 199, 89, 0.15);
-            color: #34c759;
-            border: 1px solid rgba(52, 199, 89, 0.3);
+            background: rgba(48, 209, 88, 0.1);
+            color: var(--accent-positive);
+            border: 1px solid rgba(48, 209, 88, 0.2);
         }
+
         .disconnected {
-            background-color: rgba(255, 59, 48, 0.15);
-            color: #ff3b30;
-            border: 1px solid rgba(255, 59, 48, 0.3);
+            background: rgba(255, 69, 58, 0.1);
+            color: var(--accent-negative);
+            border: 1px solid rgba(255, 69, 58, 0.2);
+        }
+
+        .search-container {
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        #stockSearch {
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 14px;
+            background: var(--background-secondary);
+            color: var(--text-primary);
+            font-size: 16px;
+            font-family: inherit;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        #stockSearch:focus {
+            outline: none;
+            background: var(--background-tertiary);
+        }
+
+        #stockSearch::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .stock-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            gap: 12px;
+        }
+
+        .stock-item {
+            background: var(--card-background);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stock-item:active {
+            transform: scale(0.98);
+            background: var(--background-tertiary);
+        }
+
+        .stock-info {
+            flex-grow: 1;
+            margin-right: 16px;
+        }
+
+        .stock-symbol {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .stock-name {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .stock-price-change {
+            text-align: right;
+            min-width: 100px;
+        }
+
+        .stock-price {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .stock-change {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .change-positive {
+            background: rgba(48, 209, 88, 0.1);
+            color: var(--accent-positive);
+        }
+
+        .change-negative {
+            background: rgba(255, 69, 58, 0.1);
+            color: var(--accent-negative);
+        }
+
+        .edit-button {
+            background: var(--background-secondary);
+            color: var(--text-primary);
+            border: none;
+            border-radius: 12px;
+            padding: 8px 16px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .edit-button:active {
+            transform: scale(0.96);
+            background: var(--background-tertiary);
+        }
+
+        @media (hover: hover) {
+            .stock-item:hover {
+                transform: translateY(-2px);
+                background: var(--background-tertiary);
+            }
+
+            .edit-button:hover {
+                background: var(--background-tertiary);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 12px;
+            }
+
+            .stock-item {
+                padding: 14px;
+            }
+        }
+
+        @supports (-webkit-touch-callout: none) {
+            .stock-list {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+
+        /* Flash animations */
+        @keyframes flashGreen {
+            0% { background: var(--card-background); }
+            50% { background: rgba(48, 209, 88, 0.15); }
+            100% { background: var(--card-background); }
+        }
+
+        @keyframes flashRed {
+            0% { background: var(--card-background); }
+            50% { background: rgba(255, 69, 58, 0.15); }
+            100% { background: var(--card-background); }
+        }
+
+        .flash-positive {
+            animation: flashGreen 2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .flash-negative {
+            animation: flashRed 2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         /* Stock List and Item Styling */
@@ -219,52 +428,202 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            background-color: var(--blur-background);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             z-index: 1000;
         }
 
-        .modal-content {
+        .modal-content.stock-details-content {
+            max-width: 500px;
+            background: var(--background-primary);
+            border-radius: 24px;
+            margin: 20px;
+            padding: 0;
             position: relative;
-            background-color: #1c1c1e;
-            margin: 5% auto;
-            padding: 20px;
-            width: 90%;
-            max-width: 400px;
-            border-radius: 16px;
-            box-sizing: border-box;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
         }
 
         .modal-header {
+            padding: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #2c2c2e;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .modal-title {
-            font-size: 1.4rem;
-            color: #ffffff;
-            margin: 0;
+            font-size: 17px;
+            color: var(--text-primary);
             font-weight: 600;
         }
 
         .close-modal {
             background: none;
             border: none;
-            color: #8e8e93;
-            font-size: 1.8rem;
+            color: var(--text-secondary);
+            font-size: 24px;
             cursor: pointer;
-            padding: 0;
-            transition: color 0.2s ease;
+            padding: 8px;
+            margin: -8px;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .close-modal:hover {
-            color: #ffffff;
+        .stock-details-header {
+            padding: 24px;
+            background: var(--background-secondary);
+            position: relative;
         }
 
+        .stock-details-symbol {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .stock-details-expiry {
+            font-size: 15px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        .stock-details-price {
+            font-size: 34px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 24px;
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+        }
+
+        .price-change {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--accent-positive);
+        }
+
+        .price-change.negative {
+            color: var(--accent-negative);
+        }
+
+        .last-update {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .refresh-button {
+            background: var(--background-tertiary);
+            border: none;
+            color: var(--text-secondary);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .refresh-button:active {
+            transform: scale(0.9);
+        }
+
+        .stock-details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 16px;
+        }
+
+        .detail-item {
+            background: var(--background-secondary);
+            padding: 16px;
+            border-radius: 16px;
+            transition: transform 0.2s ease;
+        }
+
+        .detail-item:active {
+            transform: scale(0.98);
+        }
+
+        .detail-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .refresh-button.loading svg {
+            animation: spin 1s linear infinite;
+        }
+
+        @media (max-width: 480px) {
+            .modal-content.stock-details-content {
+                margin: 0;
+                height: 100vh;
+                border-radius: 0;
+            }
+
+            .stock-details-grid {
+                padding: 12px;
+                gap: 8px;
+            }
+
+            .detail-item {
+                padding: 14px;
+            }
+
+            .stock-details-header {
+                padding: 20px;
+            }
+        }
+
+        @media (hover: hover) {
+            .refresh-button:hover {
+                background: var(--background-tertiary);
+                color: var(--text-primary);
+            }
+
+            .close-modal:hover {
+                background: var(--background-secondary);
+            }
+
+            .detail-item:hover {
+                transform: translateY(-2px);
+            }
+        }
+
+        /* Stock Selection Modal */
         .stock-selection {
             max-height: 60vh;
             overflow-y: auto;
@@ -367,63 +726,6 @@
             accent-color: #34c759;
             border-radius: 4px;
         }
-
-        .stock-details-content {
-            max-width: 500px;
-        }
-
-        .stock-details-header {
-            padding: 20px;
-            background-color: #2c2c2e;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-
-        .stock-details-symbol {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 8px;
-        }
-
-        .stock-details-price {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #ffffff;
-        }
-
-        .stock-details-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-            padding: 0 20px;
-        }
-
-        .detail-item {
-            background-color: #2c2c2e;
-            padding: 16px;
-            border-radius: 12px;
-        }
-
-        .detail-label {
-            font-size: 0.9rem;
-            color: #8e8e93;
-            margin-bottom: 4px;
-        }
-
-        .detail-value {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #ffffff;
-        }
-
-        .detail-value.positive {
-            color: #34c759;
-        }
-
-        .detail-value.negative {
-            color: #ff3b30;
-        }
     </style>
 </head>
 <body>
@@ -519,7 +821,7 @@
                 statusDiv.className = 'status disconnected';
                 
                 // Attempt to reconnect after 5 seconds
-                setTimeout(connectSocket, 5000);
+                setTimeout(connectSocket, 1000);
             });
 
             socket.on('connect_error', (error) => {
@@ -614,12 +916,12 @@
                     <li class="stock-item ${flashClass}" onclick="openDetailsModal(${JSON.stringify(stock).replace(/"/g, '&quot;')})">
                         <div class="stock-info">
                             <div class="stock-symbol">${stock.Symbol}</div>
-                            <div class="stock-name">${stock.Symbol}</div>
+                            <div class="stock-name">${stock['Exchange']} • ${stock['Ser/Exp']}</div>
                         </div>
                         
                         <div class="stock-price-change">
-                            <div class="stock-price">${currentPrice.toFixed(2)}</div>
-                            <div class="stock-change ${changeClass}">${changeSign}${netChange.toFixed(2)} (${changeSign}${percentageChange.toFixed(2)}%)</div>
+                            <div class="stock-price">₹${stock['Last Traded Price']}</div>
+                            <div class="stock-change ${changeClass}">${changeSign}${stock['Net Change In Rs']} (${changeSign}${stock['% Net Change In Rs']}%)</div>
                         </div>
                     </li>
                 `;
@@ -730,36 +1032,97 @@
             }
         }
 
-        function openDetailsModal(stock) {
+        async function openDetailsModal(stock) {
             const modal = document.getElementById('stockDetailsModal');
             const symbolElement = modal.querySelector('.stock-details-symbol');
             const priceElement = modal.querySelector('.stock-details-price');
             const gridElement = modal.querySelector('.stock-details-grid');
+            const headerElement = modal.querySelector('.stock-details-header');
 
-            // Set header information
-            symbolElement.textContent = stock.Symbol;
-            priceElement.textContent = `₹${parseFloat(stock['Last Traded Price']).toFixed(2)}`;
+            // Show initial data
+            updateDetailsModal(stock);
+            modal.style.display = 'block';
+
+            // Fetch fresh data
+            await refreshStockDetails(stock.Symbol);
+        }
+
+        async function refreshStockDetails(symbol) {
+            try {
+                const refreshButton = document.querySelector('.refresh-button');
+                if (refreshButton) {
+                    refreshButton.classList.add('loading');
+                }
+
+                const response = await fetch('https://backend-nl8q.onrender.com/data');
+                const data = await response.json();
+                
+                const updatedStock = data.data.find(s => s.Symbol === symbol);
+                if (updatedStock) {
+                    updateDetailsModal(updatedStock);
+                }
+            } catch (error) {
+                console.error('Error fetching fresh data:', error);
+            } finally {
+                const refreshButton = document.querySelector('.refresh-button');
+                if (refreshButton) {
+                    refreshButton.classList.remove('loading');
+                }
+            }
+        }
+
+        function updateDetailsModal(stock) {
+            const modal = document.getElementById('stockDetailsModal');
+            const symbolElement = modal.querySelector('.stock-details-symbol');
+            const priceElement = modal.querySelector('.stock-details-price');
+            const gridElement = modal.querySelector('.stock-details-grid');
+            const headerElement = modal.querySelector('.stock-details-header');
+
+            const netChange = parseFloat(stock['Net Change In Rs']);
+            const isPositive = netChange >= 0;
+            headerElement.className = `stock-details-header ${isPositive ? '' : 'negative'}`;
+
+            // Update header information
+            symbolElement.innerHTML = `
+                <div>
+                    ${stock.Symbol} (${stock.Exchange})
+                    <div class="stock-details-expiry">${stock['Ser/Exp']}</div>
+                </div>
+                <div class="last-update">
+                    ${stock['Last Update Time']}
+                    <button class="refresh-button" onclick="refreshStockDetails('${stock.Symbol}')">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
+                </div>
+            `;
+
+            const changeDisplay = `
+                <span class="price-change ${isPositive ? '' : 'negative'}">
+                    ${isPositive ? '+' : ''}${stock['Net Change In Rs']}
+                    (${isPositive ? '+' : ''}${stock['% Net Change In Rs']}%)
+                </span>
+            `;
+
+            priceElement.innerHTML = `₹${stock['Last Traded Price']} ${changeDisplay}`;
             
             // Create grid items for each detail
             const details = [
-                { label: 'Open', value: stock['Open'] },
-                { label: 'High', value: stock['High'] },
-                { label: 'Low', value: stock['Low'] },
-                { label: 'Previous Close', value: stock['Previous Close'] },
-                { label: 'Net Change', value: stock['Net Change In Rs'], isChange: true },
-                { label: 'Change %', value: stock['% Net Change In Rs'], isChange: true }
+                { label: 'Buy Price', value: `₹${stock['Buy Price']}` },
+                { label: 'Sell Price', value: `₹${stock['Sell Price']}` },
+                { label: 'Day Range', value: stock['DPR'].replace(' - ', '\n-\n') },
+                { label: 'Open Interest', value: stock['OI'] },
+                { label: 'Buy Quantity', value: stock['TBQ'] },
+                { label: 'Sell Quantity', value: stock['TSQ'] }
             ];
 
             gridElement.innerHTML = details.map(detail => `
                 <div class="detail-item">
                     <div class="detail-label">${detail.label}</div>
-                    <div class="detail-value ${detail.isChange ? (parseFloat(detail.value) >= 0 ? 'positive' : 'negative') : ''}">
-                        ${detail.isChange ? (parseFloat(detail.value) >= 0 ? '+' : '') : ''}${detail.value}
-                    </div>
+                    <div class="detail-value">${detail.value}</div>
                 </div>
             `).join('');
-
-            modal.style.display = 'block';
         }
 
         function closeDetailsModal() {

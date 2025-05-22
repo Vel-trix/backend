@@ -1,32 +1,26 @@
 {
-  "name": "raagheaven-services",
+  "name": "stock-market-live",
   "version": "1.0.0",
-  "description": "YouTube API",
+  "description": "Live Stock Market Data Application",
   "type": "module",
   "main": "api/main.js",
   "engines": {
-    "node": "18.x"
+    "node": ">=18.x"
   },
   "scripts": {
-    "start": "node api/main.js"
+    "start": "node api/main.js",
+    "dev": "nodemon api/main.js"
   },
   "dependencies": {
-    "axios": "^1.8.4",
+    "axios": "^1.6.7",
     "cheerio": "^1.0.0",
     "cors": "^2.8.5",
-    "express": "^4.21.2",
-    "fs": "^0.0.1-security",
-    "got": "^14.4.7",
-    "http-proxy-agent": "^7.0.2",
-    "https-proxy-agent": "^7.0.6",
-    "innertube.js": "^1.0.4",
+    "express": "^4.18.2",
     "node-fetch": "^3.3.2",
-    "pg": "^8.14.1",
-    "socket.io": "^4.8.1",
-    "tunnel": "^0.0.6",
-    "youtubei.js": "^13.4.0"
+    "pg": "^8.16.0",
+    "socket.io": "^4.7.4"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.3"
   }
 }
