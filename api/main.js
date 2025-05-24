@@ -12,6 +12,7 @@ import velin from './velin.js';
 import auth from './auth.js'
 import cobalt from './cobalt.js';
 import home from './home.js';
+import img from './img.js';
 
 const app = express();
 const PORT = 3100;
@@ -49,6 +50,7 @@ app.use(velin);
 app.use(auth);
 app.use(cobalt);
 app.use(home);
+app.use(img);
 
 // Initialize Socket.IO
 initializeSocket(server);
