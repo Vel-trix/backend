@@ -1,19 +1,14 @@
 import express from "express";
 import { Client } from "@gradio/client";
 
-
-const app = express()
-
-let client;
-(async () => {
-  client = await Client.connect("Heartsync/NSFW-Uncensored");
-})();
+const app = express();
 
 app.post("/infer", async (req, res) => {
   const { prompt } = req.body;
-  if (!client) return res.status(500).send("Model not ready");
-
+  
   try {
+    const client = await Client.connect("Heartsync/censored");
+    
     const result = await client.predict("/infer", {
       prompt,
       negative_prompt: "text, talk bubble, low quality, watermark, signature",
@@ -25,9 +20,11 @@ app.post("/infer", async (req, res) => {
       num_inference_steps: 28,
     });
 
+    await client.close();
+    
     res.json(result);
   } catch (err) {
-    console.error(err);
+    console.error("Error during prediction:", err);
     res.status(500).send("Error during prediction");
   }
 });
