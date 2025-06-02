@@ -58,7 +58,7 @@ class InvidiousAPI {
       // If not a videoplayback URL, return original
       return originalUrl;
     } catch (error) {
-      console.error("Error replacing URL hst:", error);
+      console.error("Error replacing URL host:", error);
       return originalUrl;
     }
   }
@@ -107,7 +107,44 @@ class InvidiousAPI {
     // Get the video title from the Invidious response
     const title = videoData.title || `video-${videoId}`;
     
-    // First try to find audio in adaptiveFormats (usually higher quality)
+    // First try to find format with itag 140 (high-quality audio)
+    if (videoData.adaptiveFormats && videoData.adaptiveFormats.length > 0) {
+      // Look for itag 140 specifically
+      const itag140Format = videoData.adaptiveFormats.find(format => 
+        format.itag === "140" || format.itag === 140
+      );
+      
+      if (itag140Format) {
+        let audioUrl = this.replaceUrlHost(itag140Format.url);
+        return { 
+          url: audioUrl, 
+          title, 
+          itag: itag140Format.itag,
+          format: 'audio',
+          quality: 'high'
+        };
+      }
+    }
+
+    // Check formatStreams for itag 140 as fallback
+    if (videoData.formatStreams && videoData.formatStreams.length > 0) {
+      const itag140Format = videoData.formatStreams.find(format => 
+        format.itag === "140" || format.itag === 140
+      );
+      
+      if (itag140Format) {
+        let audioUrl = this.replaceUrlHost(itag140Format.url);
+        return { 
+          url: audioUrl, 
+          title, 
+          itag: itag140Format.itag,
+          format: 'audio',
+          quality: 'high'
+        };
+      }
+    }
+    
+    // If itag 140 not found, fall back to other audio formats
     if (videoData.adaptiveFormats && videoData.adaptiveFormats.length > 0) {
       // Look for audio formats - in Invidious they're identified by type containing 'audio'
       const audioFormats = videoData.adaptiveFormats.filter(format => 
@@ -125,7 +162,13 @@ class InvidiousAPI {
         // Replace the host URL with the Invidious instance
         let bestAudioUrl = this.replaceUrlHost(audioFormats[0].url);
         
-        return { url: bestAudioUrl, title };
+        return { 
+          url: bestAudioUrl, 
+          title,
+          itag: audioFormats[0].itag || 'unknown',
+          format: 'audio',
+          quality: 'fallback'
+        };
       }
     }
     
@@ -142,17 +185,33 @@ class InvidiousAPI {
         // Replace the host URL with the Invidious instance
         let audioUrl = this.replaceUrlHost(sortedFormats[0].url);
         
-        return { url: audioUrl, title };
+        return { 
+          url: audioUrl, 
+          title,
+          itag: sortedFormats[0].itag || 'unknown',
+          format: 'audio',
+          quality: 'fallback'
+        };
       }
     }
     
     // Last resort: try to use the dash or hls URL if available
     if (videoData.dashUrl) {
-      return { url: this.replaceUrlHost(videoData.dashUrl), title, format: 'dash' };
+      return { 
+        url: this.replaceUrlHost(videoData.dashUrl), 
+        title, 
+        format: 'dash',
+        quality: 'streaming'
+      };
     }
     
     if (videoData.hlsUrl) {
-      return { url: this.replaceUrlHost(videoData.hlsUrl), title, format: 'hls' };
+      return { 
+        url: this.replaceUrlHost(videoData.hlsUrl), 
+        title, 
+        format: 'hls',
+        quality: 'streaming'
+      };
     }
     
     throw new Error("No suitable audio format found.");
@@ -174,19 +233,21 @@ app.get('/mp3/:videoId', async (req, res) => {
   }
 
   try {
-    const { url, title, format } = await api.getHighestQualityOpusUrl(videoId);
+    const { url, title, itag, format, quality } = await api.getHighestQualityOpusUrl(videoId);
     
     // Set proper CORS headers
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     
-    // Send the response
+    // Send the response with itag information
     res.json({
       status: 'tunnel',
       url,
       filename: title,
-      format: format || 'audio'
+      format: format || 'audio',
+      itag: itag || 'unknown',
+      quality: quality || 'unknown'
     });
   } catch (error) {
     console.error("MP3 endpoint error:", error);
