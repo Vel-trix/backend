@@ -355,7 +355,7 @@ app.get('/streams/:videoId', async (req, res) => {
     try {
         const videoId = req.params.videoId;
         const sources = [
-            'https://raw.githubusercontent.com/Shashwat-CODER-Music/akkidark/refs/heads/main/downloads.json'
+            'https://raw.githubusercontent.com/Shashwat-CODER-Music/akkidark/refs/heads/main/d.json'
         ];
 
         let videoData = null;
