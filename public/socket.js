@@ -1,6 +1,5 @@
 /*!
- * Socket.IO v4.7.4
- * (c) 2014-2024 Guillermo Rauch
+ * (c) 2024-2025 veltrix(Shashwat)
  * Released under the MIT License.
  */
 !function(t, e) {
