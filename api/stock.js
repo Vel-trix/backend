@@ -36,7 +36,7 @@ async function fetchStockData() {
 // Internal ping function to keep Render backend alive
 async function pingRenderBackend() {
     try {
-        const response = await axios.get('https://backend-nl8q.onrender.com/', {
+        const response = await axios.get('https://backend-52f8.onrender.com', {
             timeout: 5000,
             validateStatus: (status) => status === 200
         });
