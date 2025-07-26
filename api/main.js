@@ -212,3 +212,6 @@ console.log('Starting server...');
 console.log('Node version:', process.version);
 console.log('Platform:', process.platform);
 console.log('Architecture:', process.arch);
+
+console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+console.log(`🔧 Platform: Hugging Face Spaces detected: ${process.env.SPACE_ID ? 'Yes' : 'No'}`);
