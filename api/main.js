@@ -15,7 +15,7 @@ import home from './home.js';
 import img from './img.js';
 
 const app = express();
-const PORT = 3100;
+const PORT = 7860;
 
 // ES modules fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
