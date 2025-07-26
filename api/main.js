@@ -74,13 +74,6 @@ process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
 
 // Start server
-server.listen(PORT, '0.0.0.0', () => {
-    console.log('\n🚀 Server started successfully!');
-    console.log('\n📍 Access points:');
-    console.log(`📺 Movie App: http://localhost:${PORT}`);
-    console.log(`📊 MCX data endpoint: http://localhost:${PORT}/data`);
-    console.log(`🎵 MP3 download: http://localhost:${PORT}/mp3/{videoId}`);
-    console.log(`🎥 Video download: http://localhost:${PORT}/video/{videoId}`);
-    console.log(`📺 Channel videos: http://localhost:${PORT}/c/{channelId}`);
-    console.log('\n🔌 WebSocket server enabled');
+server.listen(process.env.PORT || 7860, '0.0.0.0', () => {
+  console.log(`Server running on port ${process.env.PORT || 7860}`);
 });
